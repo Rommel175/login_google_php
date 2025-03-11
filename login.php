@@ -1,9 +1,9 @@
 <?php
     require_once 'config.php';
 
-    //Comprobamos si existe el CODE que es donde se encuentra el token
+    //Comprobamos si existe el CODE (código de autorización) que es donde se encuentra el token
     if (isset($_GET['code'])) {
-        //Cogemos el token
+        //Cogemos el token del código de acceso
         $token = $google_client->fetchAccessTokenWithAuthCode($_GET['code']);
 
         //Si no hay ningún error lo guardamos en el objeto y en una sesión.
@@ -11,9 +11,13 @@
             $google_client->setAccessToken($token['access_token']);
             $_SESSION['access_token'] = $token['access_token'];
             
+            //Generamos una instancia del siguiente servicio para acceder a los daros del usuario autenticado
             $google_service = new Google\Service\Oauth2($google_client);
+            //Obtenemos los datos del usuario autenticado
             $data = $google_service->userinfo->get();
 
+
+            //Guardamos los datos
             if (!empty($data['given_name'])) {
                 $_SESSION['user_first_name'] = $data['given_name'];
             }
@@ -36,6 +40,7 @@
         }
     }
 
+    //En caso de no tenenr ek token de accesso en la sesión nos genera el enlace que nos redirige a iniciar sesión con google.
     if (!isset($_SESSION['access_token'])) {
         $login_button = '<a href="' . $google_client->createAuthUrl() . '" style=" background: #dd4b39; border-radius: 5px; color: white; display: block; font-weight: bold; padding: 20px; text-align: center; text-decoration: none; width: 200px;">Login With Google</a>';
     }
